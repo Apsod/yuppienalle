@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Main Screen</title>
+    </head>
+    <body>
+        <h1>hej</h1>
+        <div id="container">
+            <button type="button sendsize" id="sendsize">sendscreensize</button>
+            <button type="button closebutton" id="closebutton">closeconnection</button>
+        </div>
+        <script type="text/javascript">
+//        var screensize = screen.height.toString() + "x" +screen.width.toString();
+
+        function windowSize() {
+            return window.innerHeight.toString() + "x" + window.innerWidth.toString();
+
+        }
+        websocket = new WebSocket('ws://192.168.10.210:9000/screen');
+
+        websocket.onopen = function(){
+            console.log("connection is open");
+            websocket.send(windowSize());
+        }
+
+        sendsize.addEventListener('click', function(event) {
+            console.log('Sending screensize: ' + windowSize());
+            websocket.send(windowSize());
+        });
+        closebutton.addEventListener('click', function(event) {
+            console.log('Trying to close connection...');
+            websocket.close();
+        });
+
+        websocket.onmessage = function (event) {
+            console.log(event.data);
+            drawBoard(JSON.parse(event.data));
+        }
+        websocket.onclose = function (event){
+            console.log('...connection closed. Go out and have some fun');
+        }
+        function drawBoard(coordinates) {
+            var c = document.getElementById('board');
+            var ctx = c.getContext("2d");
+            for(i=0; i<coordinates.length; i++){
+                ctx.fillRect(coordinates[i][0],coordinates[i][1],5,5);
+            }
+            console.log(coordinates[0][0],coordinates[0][1]);
+        }
+
+        </script>
+        <canvas id="board" width="500" height="500" style="border:1px solid black"></canvas>
+
+
+    </body>
+</html>
