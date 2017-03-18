@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html >
+
+<head>
+  <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+  <meta content="utf-8" http-equiv="encoding">
+    <meta name="viewport" content="width=480, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0,target-densitydpi=device-dpi, user-scalable=no" />
+    <style>
+         :-webkit-full-screen {}
+
+        :-moz-full-screen {}
+
+        :-ms-fullscreen {}
+
+        :fullscreen {}
+
+        html {
+            overflow-x: hidden;
+        }
+
+        body {
+            position: relative overflow-x: hidden;
+            background-color: #9e6e6e;
+        }
+
+        #leftButton {
+            display: inline-block;
+            height: 100%;
+            width: 45%;
+            font: 40;
+        }
+
+        #rightButton {
+            display: inline-block;
+            height: 100%;
+            width: 45%;
+        }
+
+        #container {
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            text-align: center;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div id="container">
+        <button type="button leftButton" id="leftButton">Left</button>
+        <button type="button rightButton" id="rightButton">Right</button>
+    </div>
+    <script type="text/javascript">
+        window.scrollTo(0, 1);
+        websocket = new WebSocket('ws://127.0.0.1:9000/controller');
+
+        websocket.onopen = function(){
+            console.log("connection is open");
+            websocket.send('straight');
+        }
+
+        leftButton.onmousedown = function(){
+          websocket.send('left');
+          console.log('left');
+        }
+        leftButton.onmouseup = function(){
+          websocket.send('straight');
+          console.log('straight');
+        }
+        rightButton.onmousedown = function(){
+          websocket.send('right');
+          console.log('right');
+        }
+        rightButton.onmouseup = function(){
+          websocket.send('straight');
+          console.log('straight');
+        }
+    </script>
+</body>
+
+</html>

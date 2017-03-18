@@ -3,19 +3,26 @@ import asyncio
 import logging
 import json
 import numpy
-
+from game import GameState
+from util import *
 
 
 async def game(factory):
     dt = 1 / 20
-    n = 4
-    borders = numpy.array([500, 500])
-    positions = numpy.mod(numpy.random.random((n,2)) * borders, borders)
-    velocities = numpy.random.randn(n,2)*40
+    gamestate = GameState(500, 500, len(factory.clients), 10)
+    #straight = range(0,10)
+    #rot = range(10, 20)
     while(1):
-        positions = numpy.mod(positions + velocities * dt, borders)
+        #gamestate.straight(straight, dt)
+        if factory.state == str.encode('left'):
+            gamestate.rotate_left(0, 1, dt)
+        else:
+            gamestate.straight(0, dt)
+
+        #gamestate.rotate_left(0, 1, dt)
+        gamestate.wrap()
         if factory.screen:
-            factory.push_screen(json.dumps(positions.tolist()).encode('utf8'))
+            factory.push_screen(json.dumps(gamestate.positions.tolist()).encode('utf8'))
         else:
             break
         await asyncio.sleep(dt)
@@ -26,9 +33,10 @@ class Factory(WebSocketServerFactory):
         self.clients = {}
         self.screen = None
         self.i = 0
+        self.state = ''
 
     def register_controller(self, client):
-        self.clients[client] = i
+        self.clients[client] = self.i
         self.i += 1
         return self.clients[client]
 
@@ -50,7 +58,7 @@ class Factory(WebSocketServerFactory):
         logging.info('screen: {}'.format(payload))
 
     def controller_message(self, service, payload, isBinary):
-        logging.info('controller: {}'.format(payload))
+        self.state = payload
 
     def push_screen(self, msg):
         self.screen.push(msg)
@@ -153,7 +161,8 @@ def serve():
     factory = Factory()
     factory.protocol = ServerProtocol
     loop = asyncio.get_event_loop()
-    coro = loop.create_server(factory, '192.168.10.210', 9000)
+    addr = '127.0.0.1'
+    coro = loop.create_server(factory, addr, 9000)
     server = loop.run_until_complete(coro)
     try:
         logging.info('server running')
