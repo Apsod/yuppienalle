@@ -3,23 +3,26 @@ import asyncio
 import logging
 import json
 import numpy
-from game import GameState
-from util import *
+from .game import GameState, row_norms
 
+INF = float('inf')
 
 async def game(factory):
     dt = 1 / 20
-    gamestate = GameState(500, 500, len(factory.clients), 10)
+    gamestate = GameState(500, 500, len(factory.clients), 40)
     #straight = range(0,10)
     #rot = range(10, 20)
     while(1):
         #gamestate.straight(straight, dt)
         if factory.state == str.encode('left'):
-            gamestate.rotate_left(0, 1, dt)
+            gamestate.turn(list(factory.clients.values()), -20, dt)
+        elif factory.state == str.encode('right'):
+            gamestate.turn(list(factory.clients.values()), 20, dt)
         else:
-            gamestate.straight(0, dt)
+            gamestate.straight(list(factory.clients.values()), dt)
 
         #gamestate.rotate_left(0, 1, dt)
+        print(row_norms(gamestate.directions))
         gamestate.wrap()
         if factory.screen:
             factory.push_screen(json.dumps(gamestate.positions.tolist()).encode('utf8'))
