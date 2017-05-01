@@ -60,7 +60,7 @@ def turn(velocity, turning_radius, dt):
     return run
 
 
-class GameState():
+class GameState(object):
     borders = None
     positions = None
     directions = None

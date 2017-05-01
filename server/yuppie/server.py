@@ -8,17 +8,24 @@ from .game import GameState, row_norms
 
 INF = float('inf')
 
+
 async def game(factory):
     dt = 1 / 20
+    clients = list(zip(factory.clients.keys(), itertools.count()))
     gamestate = GameState(500, 500, len(factory.clients), 40)
-    client2index = {client: index for index, client in zip(itertools.count(), factory.clients.keys())}
-    index2client = client2index.keys()
-    #straight = range(0,10)
-    #rot = range(10, 20)
-    while(1):
-        gamestate.turn([index for client, index in client2index.items() if factory.clients[client] == b'left'], -20, dt)
-        gamestate.turn([index for client, index in client2index.items() if factory.clients[client] == b'right'], 20, dt)
-        gamestate.straight([index for client, index in client2index.items() if factory.clients[client] == b'straight'], dt)
+
+    def get_commands():
+        commands = {b'left': [], b'right': [], b'straight': []}
+        for client, ix in clients:
+            commands[factory.clients[client]].append(ix)
+
+        return commands
+
+    while 1:
+        cmd = get_commands()
+        gamestate.turn(cmd[b'left'], -20, dt)
+        gamestate.turn(cmd[b'right'], 20, dt)
+        gamestate.straight(cmd[b'straight'], dt)
 
         gamestate.wrap()
         if factory.screen:
@@ -26,6 +33,7 @@ async def game(factory):
         else:
             break
         await asyncio.sleep(dt)
+
 
 class Factory(WebSocketServerFactory):
     def __init__(self, *args, **kwargs):
