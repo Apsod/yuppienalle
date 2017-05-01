@@ -3,6 +3,7 @@ import asyncio
 import logging
 import json
 import numpy
+import itertools
 from .game import GameState, row_norms
 
 INF = float('inf')
@@ -10,19 +11,15 @@ INF = float('inf')
 async def game(factory):
     dt = 1 / 20
     gamestate = GameState(500, 500, len(factory.clients), 40)
+    client2index = {client: index for index, client in zip(itertools.count(), factory.clients.keys())}
+    index2client = client2index.keys()
     #straight = range(0,10)
     #rot = range(10, 20)
     while(1):
-        #gamestate.straight(straight, dt)
-        if factory.state == str.encode('left'):
-            gamestate.turn(list(factory.clients.values()), -20, dt)
-        elif factory.state == str.encode('right'):
-            gamestate.turn(list(factory.clients.values()), 20, dt)
-        else:
-            gamestate.straight(list(factory.clients.values()), dt)
+        gamestate.turn([index for client, index in client2index.items() if factory.clients[client] == b'left'], -20, dt)
+        gamestate.turn([index for client, index in client2index.items() if factory.clients[client] == b'right'], 20, dt)
+        gamestate.straight([index for client, index in client2index.items() if factory.clients[client] == b'straight'], dt)
 
-        #gamestate.rotate_left(0, 1, dt)
-        print(row_norms(gamestate.directions))
         gamestate.wrap()
         if factory.screen:
             factory.push_screen(json.dumps(gamestate.positions.tolist()).encode('utf8'))
@@ -35,13 +32,9 @@ class Factory(WebSocketServerFactory):
         super(Factory, self).__init__(*args, **kwargs)
         self.clients = {}
         self.screen = None
-        self.i = 0
-        self.state = ''
 
     def register_controller(self, client):
-        self.clients[client] = self.i
-        self.i += 1
-        return self.clients[client]
+        self.clients[client] = ''
 
     def register_screen(self, screen):
         if self.screen is None:
@@ -61,7 +54,7 @@ class Factory(WebSocketServerFactory):
         logging.info('screen: {}'.format(payload))
 
     def controller_message(self, service, payload, isBinary):
-        self.state = payload
+        self.clients[service] = payload
 
     def push_screen(self, msg):
         self.screen.push(msg)
