@@ -39,6 +39,8 @@
         #container {
             width: 100%;
             height: 100%;
+            position: fixed;
+            text-align: center;
         }
     </style>
 
@@ -47,20 +49,35 @@
 <body>
 
     <div id="container">
-      <input type="text" id="name" value="Enter name..."/>
-      <input type="color" id="favcolor" value="#ff0000">
-      <button onclick="submit()">Ready!</button>
+        <button type="button leftButton" id="leftButton">Left</button>
+        <button type="button rightButton" id="rightButton">Right</button>
     </div>
     <script type="text/javascript">
         window.scrollTo(0, 1);
         websocket = new WebSocket('ws://127.0.0.1:9000/controller');
-        function submit(){
-          var playerName = document.getElementById("name").value;
-          var playerColor = document.getElementById("favcolor").value;
-          websocket.send(playerName, playerColor);
-          location.href = "http://localhost:8887/public/phoneUI/controller.html"
+
+        websocket.onopen = function(){
+            console.log("client connected");
+            websocket.send('straight');
+
         }
 
+        leftButton.onmousedown = function(){
+          websocket.send('left');
+          console.log('left');
+        }
+        leftButton.onmouseup = function(){
+          websocket.send('straight');
+          console.log('straight');
+        }
+        rightButton.onmousedown = function(){
+          websocket.send('right');
+          console.log('right');
+        }
+        rightButton.onmouseup = function(){
+          websocket.send('straight');
+          console.log('straight');
+        }
     </script>
 </body>
 
