@@ -11,5 +11,8 @@
   "devDependencies": {
     "webpack": "^2.6.1",
     "websocket": "^1.0.24"
+  },
+  "dependencies": {
+    "react": "^15.5.4"
   }
 }
